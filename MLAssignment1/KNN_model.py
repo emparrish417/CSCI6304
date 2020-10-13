@@ -104,7 +104,7 @@ def find_NN(train, test, nn):
     dist_list = list(d.keys())
     dist_list.sort()
 
-    for j in range(0, nn):
+    for j in range(0, nn-1):
         distance = dist_list[j]
         instance = d[distance]
         nb.append(instance)
@@ -116,7 +116,7 @@ def knn_mnist(data):
     train, test = split_train_test(data, 0.8)
 
     outfile = open(r'outputs/minst.csv', 'w')
-    outfile.write()
+    outfile.write('train, test')
 
     test_labels = test['label'].to_list()
     test = test.drop('label', 1)
@@ -128,8 +128,7 @@ def knn_mnist(data):
     count = 0
     corr_count = 0
     st_time = time.process_time()
-    train_list = train.iterrows()
-    print = (type(train_list))
+    train_list = list(train.iterrows())
 
     for i in test.iterrows():
         test_instance = i[1].to_list()
@@ -140,7 +139,7 @@ def knn_mnist(data):
             print(str(count) + ' test rows processed')
             print('Process Time: ' + str((time.process_time() - st_time)))
 
-        #print(str(prediction) + ' ' + str(test_labels[count]))
+        outfile.write(str(prediction) + ', ' + str(test_labels[count]) + '\n')
 
         if math.isnan(prediction):
             prediction = 0
@@ -191,13 +190,35 @@ def knn_pima(data):
 
         count += 1
 
-
     print('Accuracy: ' + str((tp + tn) / count))
     print('True Positive: ' + str(tp))
     print('False Positive: ' + str(fp))
     print('True Negative: ' + str(tn))
     print('False Negative: ' + str(fn))
 
+def gen_conf_matrix(infile):
+    dict = {0:[0,0],1:[0,0],2:[0,0],3:[0,0],4:[0,0],5:[0,0],6:[0,0],7:[0,0],8:[0,0],9:[0,0]}
+    li = [[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]]
+
+    f = open(infile, 'r')
+    header = f.readline()
+    for i in f.readlines():
+        train = i.split(',')[0]
+        test = i.split(',')[1].replace('\n','').replace(' ','')
+        outs = dict[int(train)]
+        corr = outs[0]
+        tot = outs[1]
+        if train == test:
+            corr += 1
+        tot += 1
+        dict[int(train)] = [corr, tot]
+
+        print(train)
+        print(test)
+
+        li[int(train)][int(test)] += 1
+
+    print(li)
 
 in_data_path = r'input_data/KNN'
 out_data_path = r'outputs'
@@ -211,16 +232,17 @@ pima_data = pd.read_csv(os.path.join(in_data_path,'diabetes.csv'))
 load_pima = time.process_time()
 print(load_pima - load_mnist)
 
+gen_conf_matrix(r'outputs/minst.csv')
 
-knn_mnist(mnist_data)
-mnist_time = time.process_time()
-print(mnist_time - load_mnist)
-
-#plot_data(pima_data)
-
-knn_pima(pima_data)
-pima_time = time.process_time()
-print(pima_time)
+# knn_mnist(mnist_data)
+# mnist_time = time.process_time()
+# print(mnist_time - load_mnist)
+#
+# #plot_data(pima_data)
+#
+# knn_pima(pima_data)
+# pima_time = time.process_time()
+# print(pima_time)
 
 #standard_scaling(pima_data)
 #plot_image(mnist_data)
